@@ -1,0 +1,92 @@
+[
+  {
+    "part_no": "IRLZ44N",
+    "category": "MOSFET",
+    "package": "TO-220",
+    "specs": "55V, 47A, Logic-Level N-Channel, Rds(on) 22m\u03a9",
+    "location": "Drawer A-01",
+    "stock": 4,
+    "notes": "Great for Arduino/ESP32 PWM motor and LED strip switching.",
+    "datasheet": "https://www.infineon.com/dgdl/Infineon-IRLZ44N-DataSheet-v01_01-EN.pdf"
+  },
+  {
+    "part_no": "NE555P",
+    "category": "IC / Timer",
+    "package": "DIP-8",
+    "specs": "4.5V\u201316V, Precision Timer, up to 200mA output",
+    "location": "Drawer B-03",
+    "stock": 25,
+    "notes": "Classic astable/monostable oscillator and PWM generator.",
+    "datasheet": "https://www.ti.com/lit/ds/symlink/ne555.pdf"
+  },
+  {
+    "part_no": "ESP32-WROOM-32",
+    "category": "Microcontroller",
+    "package": "SMD Module",
+    "specs": "Dual-core 240MHz, Wi-Fi + BLE, 3.3V, 4MB Flash",
+    "location": "Bin C-02",
+    "stock": 3,
+    "notes": "3.3V logic only; add 10\u00b5F cap on EN pin if flashing fails.",
+    "datasheet": "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32_datasheet_en.pdf"
+  },
+  {
+    "part_no": "LM7805",
+    "category": "Voltage Regulator",
+    "package": "TO-220",
+    "specs": "5V Fixed Output, 1.5A max, 7V\u201335V Input",
+    "location": "Drawer A-04",
+    "stock": 9,
+    "notes": "Use 0.33\u00b5F input and 0.1\u00b5F output decoupling capacitors.",
+    "datasheet": "https://www.ti.com/lit/ds/symlink/lm340.pdf"
+  },
+  {
+    "part_no": "2N2222A",
+    "category": "Transistor",
+    "package": "TO-92",
+    "specs": "NPN BJT, 40V, 800mA, hFE 100\u2013300",
+    "location": "Drawer A-02",
+    "stock": 42,
+    "notes": "General-purpose low-side switch and small-signal amplifier.",
+    "datasheet": "https://www.onsemi.com/pdf/datasheet/p2n2222a-d.pdf"
+  },
+  {
+    "part_no": "1N4148",
+    "category": "Diode",
+    "package": "DO-35",
+    "specs": "100V, 200mA, Fast Switching (4ns)",
+    "location": "Bin D-01",
+    "stock": 0,
+    "notes": "Fast signal diode; avoid using for high-current flyback.",
+    "datasheet": "https://www.vishay.com/docs/81857/1n4148.pdf"
+  },
+  {
+    "part_no": "LM358P",
+    "category": "Op-Amp",
+    "package": "DIP-8",
+    "specs": "Dual Op-Amp, 3V\u201332V Single Supply, 1MHz GBW",
+    "location": "Drawer B-05",
+    "stock": 11,
+    "notes": "Output swings near GND, not rail-to-rail on high side.",
+    "datasheet": "https://www.ti.com/lit/ds/symlink/lm358.pdf"
+  },
+  {
+    "part_no": "10k\u03a9 1/4W",
+    "category": "Resistor",
+    "package": "Axial (Through-Hole)",
+    "specs": "10k\u03a9, \u00b11% Metal Film, 0.25W",
+    "location": "Binder R-10K",
+    "stock": 120,
+    "notes": "Standard pull-up/pull-down and voltage divider resistor.",
+    "datasheet": ""
+  },
+  {
+    "part_no": "100\u00b5F 25V",
+    "category": "Capacitor",
+    "package": "Radial Electrolytic",
+    "specs": "100\u00b5F, 25V, \u00b120%, 105\u00b0C",
+    "location": "Bin C-08",
+    "stock": 4,
+    "notes": "Bulk power-rail decoupling; watch polarity stripe.",
+    "datasheet": ""
+  }
+]
