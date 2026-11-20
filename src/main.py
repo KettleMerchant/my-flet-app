@@ -1,29 +1,40 @@
 import os
+import time
 import flet as ft
+from supabase import create_client, Client
 
-# Required by Flet so FilePicker uploads work over HTTP / Cloud Servers
 os.environ.setdefault("FLET_SECRET_KEY", "test-tunnel-secret-key-2026")
 
-# Resolve absolute upload path relative to src/ so uploads & image previews match
+# Temporary staging folder on Render before pushing to Supabase
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+TEMP_UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+os.makedirs(TEMP_UPLOAD_FOLDER, exist_ok=True)
+
+# Supabase Credentials (loaded from Render Environment Variables)
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+BUCKET_NAME = "uploads"
+
+supabase: Client | None = None
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 def main(page: ft.Page):
-    page.title = "Flet Cloud App"
+    page.title = "Flet + Supabase Cloud App"
     page.scroll = ft.ScrollMode.AUTO
     page.padding = 24
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
-    # --- UI Controls ---
-    status_badge = ft.Text(
-        "Server Live! Ready to test.",
-        color=ft.Colors.GREEN,
-        weight=ft.FontWeight.BOLD,
+    status_color = ft.Colors.GREEN if supabase else ft.Colors.ORANGE
+    status_text = (
+        "Connected to Supabase Storage!"
+        if supabase
+        else "Missing SUPABASE_URL / SUPABASE_KEY in Render Environment"
     )
+    status_badge = ft.Text(status_text, color=status_color, weight=ft.FontWeight.BOLD)
 
-    # 1. Image Upload & Live Preview
+    # 1. Image Upload & Permanent Preview
     upload_status = ft.Text("No image uploaded yet.", italic=True)
     image_preview = ft.Image(
         src="",
@@ -36,14 +47,47 @@ def main(page: ft.Page):
 
     def on_upload_progress(e: ft.FilePickerUploadEvent):
         if e.progress == 1.0:
-            upload_status.value = f"Uploaded: {e.file_name}"
-            upload_status.color = ft.Colors.BLUE
-            # Served directly because assets_dir=UPLOAD_FOLDER
-            image_preview.src = f"/{e.file_name}"
-            image_preview.visible = True
+            local_path = os.path.join(TEMP_UPLOAD_FOLDER, e.file_name)
+
+            if not supabase:
+                upload_status.value = "Error: Supabase credentials not configured."
+                upload_status.color = ft.Colors.RED
+                page.update()
+                return
+
+            try:
+                upload_status.value = "Syncing to permanent cloud storage..."
+                page.update()
+
+                # Create a unique filename so files never overwrite each other
+                unique_name = f"{int(time.time())}_{e.file_name}"
+
+                with open(local_path, "rb") as f:
+                    supabase.storage.from_(BUCKET_NAME).upload(
+                        path=unique_name,
+                        file=f,
+                        file_options={"content-type": "image/jpeg"},
+                    )
+
+                # Get permanent public URL from Supabase
+                public_url = supabase.storage.from_(BUCKET_NAME).get_public_url(
+                    unique_name
+                )
+
+                # Remove temporary file from Render
+                if os.path.exists(local_path):
+                    os.remove(local_path)
+
+                upload_status.value = f"Saved permanently: {unique_name}"
+                upload_status.color = ft.Colors.BLUE
+                image_preview.src = public_url
+                image_preview.visible = True
+            except Exception as ex:
+                upload_status.value = f"Supabase upload failed: {ex}"
+                upload_status.color = ft.Colors.RED
+
             page.update()
 
-    # Flet 1.0+ Service syntax (do NOT add to page.overlay)
     file_picker = ft.FilePicker(on_upload=on_upload_progress)
 
     async def pick_and_upload(e):
@@ -87,14 +131,12 @@ def main(page: ft.Page):
         msg_input.value = ""
         page.update()
 
-    # --- Page Layout ---
     page.add(
         ft.Icon(ft.Icons.CLOUD_DONE, size=48, color=ft.Colors.BLUE),
-        ft.Text("Flet Permanent Web App", size=22, weight=ft.FontWeight.BOLD),
+        ft.Text("Flet + Supabase Cloud Storage", size=22, weight=ft.FontWeight.BOLD),
         status_badge,
         ft.Divider(height=20),
-        # Section A: Image Upload
-        ft.Text("1. Image Upload & Live Preview", size=16, weight=ft.FontWeight.W_600),
+        ft.Text("1. Permanent Image Upload", size=16, weight=ft.FontWeight.W_600),
         ft.Button(
             content="Pick & Upload Image",
             icon=ft.Icons.UPLOAD_FILE,
@@ -103,7 +145,6 @@ def main(page: ft.Page):
         upload_status,
         image_preview,
         ft.Divider(height=20),
-        # Section B: Live Text Sync
         ft.Text("2. Live Data Sync", size=16, weight=ft.FontWeight.W_600),
         ft.Row(
             [
@@ -117,14 +158,12 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    # Render sets PORT automatically; defaults to 8550 locally
     port = int(os.environ.get("PORT", 8550))
-
     ft.run(
         main,
         view=ft.AppView.WEB_BROWSER,
         host="0.0.0.0",
         port=port,
-        upload_dir=UPLOAD_FOLDER,
-        assets_dir=UPLOAD_FOLDER,
+        upload_dir=TEMP_UPLOAD_FOLDER,
+        assets_dir=TEMP_UPLOAD_FOLDER,
     )
